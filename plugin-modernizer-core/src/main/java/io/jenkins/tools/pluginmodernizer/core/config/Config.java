@@ -7,9 +7,17 @@ import java.nio.file.Path;
 import java.util.List;
 import org.openrewrite.Recipe;
 
+/**
+ * Represents the configuration settings for the Jenkins plugin modernizer tool.
+ * This class includes all necessary fields and flags to customize its behavior.
+ */
 public class Config {
 
-    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", justification = "Because usage on ConsoleLogFilter")
+    /**
+     * Enables debug logging for development purposes.
+     * This flag is static as it affects global behavior.
+     */
+    @SuppressFBWarnings(value = "MS_SHOULD_BE_FINAL", justification = "Usage on ConsoleLogFilter requires it to be non-final.")
     public static boolean DEBUG = false;
 
     private final String version;
@@ -56,6 +64,13 @@ public class Config {
             boolean removeLocalData,
             boolean removeForks,
             boolean exportDatatables) {
+        // Validate required fields
+        if (version == null || version.isEmpty()) {
+            throw new IllegalArgumentException("Version cannot be null or empty.");
+        }
+        if (plugins == null || plugins.isEmpty()) {
+            throw new IllegalArgumentException("Plugins list cannot be null or empty.");
+        }
         this.version = version;
         this.githubOwner = githubOwner;
         this.githubAppId = githubAppId;
@@ -79,6 +94,7 @@ public class Config {
         this.exportDatatables = exportDatatables;
     }
 
+    // Getters for all fields
     public String getVersion() {
         return version;
     }
@@ -108,7 +124,7 @@ public class Config {
     }
 
     public boolean isFetchMetadataOnly() {
-        return recipes.size() == 1 && recipes.get(0).getName().equals(Settings.FETCH_METADATA_RECIPE.getName());
+        return recipes != null && recipes.size() == 1 && recipes.get(0).getName().equals(Settings.FETCH_METADATA_RECIPE.getName());
     }
 
     public URL getJenkinsUpdateCenter() {
@@ -171,6 +187,7 @@ public class Config {
         return exportDatatables;
     }
 
+    // Builder class for flexible and readable object creation
     public static Builder builder() {
         return new Builder();
     }
@@ -195,10 +212,14 @@ public class Config {
         private boolean skipBuild = false;
         private boolean skipPullRequest = false;
         private boolean exportDatatables = false;
-        public boolean removeLocalData = false;
-        public boolean removeForks = true;
+        private boolean removeLocalData = false;
+        private boolean removeForks = true;
 
+        // Builder methods with validation where needed
         public Builder withVersion(String version) {
+            if (version == null || version.isEmpty()) {
+                throw new IllegalArgumentException("Version cannot be null or empty.");
+            }
             this.version = version;
             return this;
         }
@@ -224,6 +245,9 @@ public class Config {
         }
 
         public Builder withPlugins(List<Plugin> plugins) {
+            if (plugins == null || plugins.isEmpty()) {
+                throw new IllegalArgumentException("Plugins list cannot be null or empty.");
+            }
             this.plugins = plugins;
             return this;
         }
@@ -297,47 +321,4 @@ public class Config {
 
         public Builder withSkipPullRequest(boolean skipPullRequest) {
             this.skipPullRequest = skipPullRequest;
-            return this;
-        }
-
-        public Builder withRemoveLocalData(boolean removeLocalData) {
-            this.removeLocalData = removeLocalData;
-            return this;
-        }
-
-        public Builder withRemoveForks(boolean removeForks) {
-            this.removeForks = removeForks;
-            return this;
-        }
-
-        public Builder withExportDatatables(boolean exportDatatables) {
-            this.exportDatatables = exportDatatables;
-            return this;
-        }
-
-        public Config build() {
-            return new Config(
-                    version,
-                    githubOwner,
-                    githubAppId,
-                    githubAppSourceInstallationId,
-                    githubAppTargetInstallationId,
-                    plugins,
-                    recipes,
-                    jenkinsUpdateCenter,
-                    jenkinsPluginVersions,
-                    pluginHealthScore,
-                    pluginStatsInstallations,
-                    cachePath,
-                    mavenHome,
-                    dryRun,
-                    skipPush,
-                    skipBuild,
-                    draft,
-                    skipPullRequest,
-                    removeLocalData,
-                    removeForks,
-                    exportDatatables);
-        }
-    }
-}
+            return this
